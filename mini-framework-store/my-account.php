@@ -4,8 +4,8 @@
 
 use Rasheed\MiniFrameworkStore\Models\User;
 use Rasheed\MiniFrameworkStore\Models\Order;
-use Rasheed\MiniFrameworkStore\Models\Product; // Include Product model if needed elsewhere
-use Carbon\Carbon; // Assuming you use Carbon for dates
+use Rasheed\MiniFrameworkStore\Models\Product; 
+use Carbon\Carbon; 
 
 if (!isLoggedIn()) {
     header('Location: login.php');
@@ -14,13 +14,16 @@ if (!isLoggedIn()) {
 
 $user = $_SESSION['user'];
 
-// Instantiate the Order model
 $orderModel = new Order();
 
-// Fetch user's orders using the Order model
-$orders = $orderModel->getOrdersByUserId($user['id']);
+if ($user['is_admin'] == 1) {
+    $orders = $orderModel->getAllOrders();
+} else {
 
-// Instantiate Product model for fetching product details within order details
+    $orders = $orderModel->getOrdersByUserId($user['id']);
+}
+
+
 $productModel = new Product();
 
 $amounLocale = 'en_PH';
@@ -32,7 +35,7 @@ if(isset($_POST['submit'])) {
     $phone = $_POST['phone'] ?? null;
     $birthdate = $_POST['birthdate'] ?? null;
 
-    // Update user details in the database
+
     $userModel = new User();
     $userModel->update([
         'id' => $_SESSION['user']['id'],
@@ -40,11 +43,10 @@ if(isset($_POST['submit'])) {
         'email' => $_SESSION['user']['email'],
         'address' => $address,
         'phone' => $phone,
-        // Use Carbon to format date if birthdate is not null and is a valid date string
+  
         'birthdate' => ($birthdate && strtotime($birthdate)) ? Carbon::createFromFormat('Y-m-d', $birthdate)->format('Y-m-d') : null
     ]);
 
-    // Update session data
     $_SESSION['user']['name'] = $name;
     $_SESSION['user']['address'] = $address;
     $_SESSION['user']['phone'] = $phone;
@@ -57,7 +59,7 @@ if(isset($_POST['submit'])) {
 
 <div class="container my-5">
     <div class="row">
-        <!-- Sidebar -->
+
         <div class="col-md-3">
             <div class="card mb-4">
                 <div class="card-header bg-olive text-white">
@@ -67,9 +69,11 @@ if(isset($_POST['submit'])) {
                     <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">
                         <i class="bi bi-person"></i> Profile
                     </a>
+                    <?php if ($user['is_admin'] != 1): ?>
                     <a href="#orders" class="list-group-item list-group-item-action" data-bs-toggle="list">
                         <i class="bi bi-bag"></i> Orders
                     </a>
+                    <?php endif; ?>
                     <a href="#settings" class="list-group-item list-group-item-action" data-bs-toggle="list">
                         <i class="bi bi-gear"></i> Settings
                     </a>
@@ -77,10 +81,10 @@ if(isset($_POST['submit'])) {
             </div>
         </div>
 
-        <!-- Main Content -->
+   
         <div class="col-md-9">
             <div class="tab-content">
-                <!-- Profile Tab -->
+              
                 <div class="tab-pane fade show active" id="profile">
                     <div class="card">
                         <div class="card-header bg-olive text-white">
@@ -120,7 +124,7 @@ if(isset($_POST['submit'])) {
                     </div>
                 </div>
 
-                <!-- Orders Tab -->
+                
                 <div class="tab-pane fade" id="orders">
                     <div class="card">
                         <div class="card-header bg-olive text-white">
@@ -152,11 +156,11 @@ if(isset($_POST['submit'])) {
                                         </div>
                                         <div class="card-body">
                                             <?php
-                                            // Fetch order details for this order using the Order model
+                                           
                                             $orderDetails = $orderModel->getOrderDetailsByOrderId($order['id']);
                                             foreach ($orderDetails as $detail):
-                                                // Product details are already joined in getOrderDetailsByOrderId
-                                                // No need to call getProductById here
+                                               
+                                            
                                             ?>
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div>
@@ -179,7 +183,7 @@ if(isset($_POST['submit'])) {
                     </div>
                 </div>
 
-                <!-- Settings Tab -->
+                
                 <div class="tab-pane fade" id="settings">
                     <div class="card">
                         <div class="card-header bg-olive text-white">

@@ -35,11 +35,10 @@ class Checkout extends Database
 
     public function userCheckout($data)
     {
-        $sql = "INSERT INTO orders (customer_id, landmark_address, total, created_at, updated_at) VALUES (:customer_id, :landmark_address, :total, :created_at, :updated_at)";
+        $sql = "INSERT INTO orders (customer_id, total, created_at, updated_at) VALUES (:customer_id, :total, :created_at, :updated_at)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'customer_id' => $data['customer_id'],
-            'landmark_address' => $data['landmark_address'] ?? null,
             'total' => $data['total'],
             'created_at' => Carbon::now('Asia/Manila'),
             'updated_at' => Carbon::now('Asia/Manila')

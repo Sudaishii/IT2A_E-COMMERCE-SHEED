@@ -40,6 +40,7 @@ foreach ($cart as $productId => $quantity) {
             <a href="index.php" class="alert-link">Continue shopping</a>
         </div>
     <?php else: ?>
+        <form method="POST" action="checkout.php">
         <div class="row">
             <!-- Cart Items -->
             <div class="col-md-8">
@@ -47,6 +48,9 @@ foreach ($cart as $productId => $quantity) {
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="row align-items-center">
+                                <div class="col-md-1">
+                                    <input type="checkbox" name="selected_products[]" value="<?php echo $item['id']; ?>" checked>
+                                </div>
                                 <div class="col-md-2">
                                     <img src="<?php echo $item['image']; ?>" 
                                          class="img-fluid rounded" 
@@ -61,7 +65,7 @@ foreach ($cart as $productId => $quantity) {
                                 </div>
                                 <div class="col-md-3">
                                     <div class="input-group">
-                                        <button class="btn btn-outline-secondary btn-sm update-quantity" 
+<button type="button" class="btn btn-outline-secondary btn-sm update-quantity" 
                                                 data-productid="<?php echo $item['id']; ?>" 
                                                 data-action="decrease">-</button>
                                         <input type="number" 
@@ -70,14 +74,14 @@ foreach ($cart as $productId => $quantity) {
                                                min="1" 
                                                max="99"
                                                data-productid="<?php echo $item['id']; ?>">
-                                        <button class="btn btn-outline-secondary btn-sm update-quantity" 
+<button type="button" class="btn btn-outline-secondary btn-sm update-quantity" 
                                                 data-productid="<?php echo $item['id']; ?>" 
                                                 data-action="increase">+</button>
                                     </div>
                                 </div>
                                 <div class="col-md-2 text-end">
                                     <h6 class="mb-1"><?php echo $pesoFormatter->formatCurrency($item['subtotal'], 'PHP'); ?></h6>
-                                    <button class="btn btn-danger btn-sm remove-item" 
+<button type="button" class="btn btn-danger btn-sm remove-item" 
                                             data-productid="<?php echo $item['id']; ?>">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -108,17 +112,18 @@ foreach ($cart as $productId => $quantity) {
                             <strong>Total:</strong>
                             <strong class="text-success"><?php echo $pesoFormatter->formatCurrency($total, 'PHP'); ?></strong>
                         </div>
-                        <a href="checkout.php" class="btn btn-success w-100">
+                        <button type="submit" class="btn btn-success w-100">
                             <i class="bi bi-credit-card"></i> Proceed to Checkout
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+        </form>
     <?php endif; ?>
 </div>
 
-<!-- Remove Item Confirmation Modal -->
+
 <div class="modal fade" id="removeItemModal" tabindex="-1" aria-labelledby="removeItemModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -139,7 +144,7 @@ foreach ($cart as $productId => $quantity) {
 
 <script>
 $(document).ready(function() {
-    // Update quantity
+   
     $('.update-quantity').click(function() {
         const productId = $(this).data('productid');
         const action = $(this).data('action');
@@ -154,32 +159,37 @@ $(document).ready(function() {
         
         input.val(value);
         updateCartItem(productId, value);
+        updateSelectedTotals();
     });
 
-    // Manual quantity input
+   
     $('.quantity-input').change(function() {
         const productId = $(this).data('productid');
         const value = parseInt($(this).val());
         updateCartItem(productId, value);
+        updateSelectedTotals();
     });
 
-    // Remove item
+
     $('.remove-item').click(function() {
         const productId = $(this).data('productid');
-        // Store the product ID on the confirm button data attribute
+     
         $('#confirmRemoveBtn').data('productid', productId);
-        // Show the confirmation modal
+ 
         $('#removeItemModal').modal('show');
     });
 
-    // Handle click on the confirm remove button in the modal
+ 
     $('#confirmRemoveBtn').click(function() {
-        // Get the product ID from the confirm button's data attribute
         const productId = $(this).data('productid');
-        // Hide the modal
         $('#removeItemModal').modal('hide');
-        // Call the remove function
         removeCartItem(productId);
+        updateSelectedTotals();
+    });
+
+
+    $('input[name="selected_products[]"]').change(function() {
+        updateSelectedTotals();
     });
 
     function updateCartItem(productId, quantity) {
@@ -193,41 +203,27 @@ $(document).ready(function() {
             },
             success: function(response) {
                 try {
-                    // Try to parse response if it's a string, otherwise assume it's already an object
                     const data = typeof response === 'string' ? JSON.parse(response) : response;
-                    console.log('Update cart response:', data);
-
                     if(data && data.success) {
-                        // Find the updated item row and update its subtotal
                         const itemCard = $(`.card:has(.quantity-input[data-productid="${productId}"])`);
                         itemCard.find('h6').text(formatCurrency(data.updated_item_subtotal));
-
-                        // Update total summary and header cart count
                         updateOrderSummary(data.total_items, data.total_price);
                         updateHeaderCartCount(data.total_items);
-
+                        updateSelectedTotals();
                     } else {
-                         console.error('Error updating cart item:', data);
                         alert(data ? (data.message || 'Error updating item quantity') : 'Unknown error');
                     }
                 } catch (e) {
-                    console.error('Error processing update cart response:', e);
                     alert('Error processing server response for update.');
                 }
             },
-            error: function(xhr, status, error) {
-                console.error('AJAX update error:', {xhr, status, error});
+            error: function() {
                 alert('Error occurred while updating cart.');
             }
         });
     }
 
     function removeCartItem(productId) {
-        // Confirm removal with the user
-        // if (!confirm('Are you sure you want to remove this item from the cart?')) {
-        //     return; // Do nothing if user cancels
-        // }
-
         $.ajax({
             url: 'cart-process.php',
             method: 'POST',
@@ -237,67 +233,78 @@ $(document).ready(function() {
             },
             success: function(response) {
                 try {
-                    // Try to parse response if it's a string, otherwise assume it's already an object
                     const data = typeof response === 'string' ? JSON.parse(response) : response;
-                    console.log('Remove item response:', data);
-
                     if(data && data.success) {
-                        // Remove the item's HTML element from the page
                         $(`.card:has(button[data-productid="${productId}"].remove-item)`).remove();
-
-                        // Update total summary and header cart count
                         updateOrderSummary(data.total_items, data.total_price);
                         updateHeaderCartCount(data.total_items);
-
-                        // Check if the cart is empty after removal
                         if (data.total_items === 0) {
-                             // Hide the item list and order summary, show the empty cart message
                             $('.container > .row').hide();
                             $('.container > .alert.alert-info').show();
                         }
-
+                        updateSelectedTotals();
                     } else {
-                        console.error('Error removing item:', data);
                         alert(data ? (data.message || 'Error removing item from cart') : 'Unknown error');
                     }
                 } catch (e) {
-                    console.error('Error processing remove item response:', e);
-                     alert('Error processing server response for removal.');
+                    alert('Error processing server response for removal.');
                 }
             },
-            error: function(xhr, status, error) {
-                console.error('AJAX remove error:', {xhr, status, error});
+            error: function() {
                 alert('Error occurred while removing item.');
             }
         });
     }
 
-    // Function to update the order summary total
     function updateOrderSummary(totalItems, totalPrice) {
-        // Update the subtotal and total price displays in the order summary card
-        $('.col-md-4 .card-body .d-flex:nth-child(1) span:last-child').text(formatCurrency(totalPrice)); // Assuming first d-flex is subtotal
-        $('.col-md-4 .card-body .d-flex:nth-child(4) strong:last-child').text(formatCurrency(totalPrice)); // Assuming fourth d-flex is total
-
-         if (totalItems === 0) {
-             $('.col-md-4 .card').hide(); // Hide the order summary card if cart is empty
-         } else {
-             $('.col-md-4 .card').show(); // Show if items are present
-         }
+        $('.col-md-4 .card-body .d-flex:nth-child(1) span:last-child').text(formatCurrency(totalPrice));
+        $('.col-md-4 .card-body .d-flex:nth-child(4) strong:last-child').text(formatCurrency(totalPrice));
+        if (totalItems === 0) {
+            $('.col-md-4 .card').hide();
+        } else {
+            $('.col-md-4 .card').show();
+        }
     }
 
-     // Function to update the header cart count badge
     function updateHeaderCartCount(totalItems) {
-         $('#cart-count-badge').text(totalItems);
-         console.log('Header cart count updated to:', totalItems);
+        $('#cart-count-badge').text(totalItems);
     }
 
-    // Helper function for currency formatting (basic)
+    function updateSelectedTotals() {
+        let totalPrice = 0;
+        let totalQuantity = 0;
+        let selectedCount = 0;
+
+        $('input[name="selected_products[]"]:checked').each(function() {
+            const productId = $(this).val();
+            const quantityInput = $(`.quantity-input[data-productid="${productId}"]`);
+            const quantity = parseInt(quantityInput.val()) || 0;
+            const itemCard = $(`.card:has(.quantity-input[data-productid="${productId}"])`);
+            const priceText = itemCard.find('p.text-success').text().replace(/[₱,]/g, '');
+            const price = parseFloat(priceText) || 0;
+
+            totalPrice += price * quantity;
+            totalQuantity += quantity;
+            selectedCount++;
+        });
+
+        $('.col-md-4 .card-body .d-flex:nth-child(1) span:last-child').text(formatCurrency(totalPrice));
+        $('.col-md-4 .card-body .d-flex:nth-child(4) strong:last-child').text(formatCurrency(totalPrice));
+
+        if (selectedCount === 0) {
+            $('.col-md-4 .card').hide();
+        } else {
+            $('.col-md-4 .card').show();
+        }
+    }
+
     function formatCurrency(amount) {
-        // This is a basic example, you might need a more robust function for different currencies/locales
         const formattedAmount = parseFloat(amount).toFixed(2);
         return '₱' + formattedAmount;
     }
 
+    
+    updateSelectedTotals();
 });
 </script>
 

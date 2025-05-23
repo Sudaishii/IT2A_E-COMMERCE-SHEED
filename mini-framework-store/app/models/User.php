@@ -19,11 +19,12 @@ class User extends Database {
         $stmt->execute([
             'email' => $data['email'],
         ]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $user;
     }
 
     public function register($data) {
-        $sql = "INSERT INTO users (name, email, password, address, phone, birthdate, created_at, updated_at) VALUES (:name, :email, :password, :address, :phone, :birthdate, :created_at, :updated_at)";
+        $sql = "INSERT INTO users (name, email, password, address, phone, birthdate, is_admin, created_at, updated_at) VALUES (:name, :email, :password, :address, :phone, :birthdate, :is_admin, :created_at, :updated_at)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'name' => $data['name'],
@@ -32,6 +33,7 @@ class User extends Database {
             'address' => $data['address'],
             'phone' => $data['phone'],
             'birthdate' => $data['birthdate'],
+            'is_admin' => $data['is_admin'] ?? 0,
             'created_at' => $data['created_at'],
             'updated_at' => $data['updated_at']
         ]);
@@ -40,7 +42,7 @@ class User extends Database {
     }
 
     public function update($data) {
-        $sql = "UPDATE users SET name = :name, email = :email, address = :address, phone = :phone, birthdate = :birthdate WHERE id = :id";
+        $sql = "UPDATE users SET name = :name, email = :email, address = :address, phone = :phone, birthdate = :birthdate, is_admin = :is_admin WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'id' => $data['id'],
@@ -48,7 +50,8 @@ class User extends Database {
             'email' => $data['email'],
             'address' => $data['address'],
             'phone' => $data['phone'],
-            'birthdate' => $data['birthdate']
+            'birthdate' => $data['birthdate'],
+            'is_admin' => $data['is_admin'] ?? 0
         ]);
     }
 
@@ -58,5 +61,14 @@ class User extends Database {
         $stmt->execute([
             'id' => $id
         ]);
-    }   
+    }
+
+    public function getUserById($id) {
+        $sql = "SELECT * FROM users WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'id' => $id
+        ]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }

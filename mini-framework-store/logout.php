@@ -2,7 +2,8 @@
 
 session_start();
 
-unset($_SESSION['user']); // Unset the user session variable
+unset($_SESSION['user']); 
+unset($_SESSION['cart']); 
 
-header('Location: login.php'); // Redirect to the login page
-exit; // Ensure no further code is executed after the redirect
+header('Location: login.php'); 
+exit; 

@@ -31,7 +31,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
     </nav>
 
     <div class="row">
-        <!-- Product Image -->
+   
         <div class="col-md-6">
             <div class="product-image-container">
                 <img src="<?php echo $productDetails['image_path']; ?>" 
@@ -41,7 +41,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
             </div>
         </div>
 
-        <!-- Product Details -->
+   
         <div class="col-md-6">
             <div class="product-details">
                 <h1 class="mb-3"><?php echo $productDetails['name']; ?></h1>
@@ -56,7 +56,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                     <p><?php echo nl2br($productDetails['description']); ?></p>
                 </div>
                 
-                <!-- Add to Cart Form -->
+              
                 <form class="add-to-cart-form mb-4">
                     <div class="row align-items-center">
                         <div class="col-md-4">
@@ -82,7 +82,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                     </div>
                 </form>
 
-                <!-- Product Meta -->
+          
                 <div class="product-meta">
                     <p class="text-muted">
                         <small>
@@ -109,10 +109,32 @@ function decrementQuantity() {
 }
 
 $(document).ready(function() {
-    $('.add-to-cart').click(function(e) {
+    console.log('Binding add-to-cart click event with delegation');
+    let ajaxInProgress = false;
+    let debounceTimeout = null;
+    $(document).off('click', '.add-to-cart').on('click', '.add-to-cart', function(e) {
         e.preventDefault();
+        if (ajaxInProgress) {
+            console.log('AJAX call already in progress, ignoring click');
+            return;
+        }
+        if (debounceTimeout) {
+            console.log('Click ignored due to debounce');
+            return;
+        }
+        debounceTimeout = setTimeout(() => {
+            debounceTimeout = null;
+        }, 500);
+        ajaxInProgress = true;
+        console.log('Add to cart clicked');
         const productId = $(this).data('productid');
-        const quantity = $('#quantity').val();
+        const quantityInput = $('#quantity');
+        const quantity = quantityInput.val();
+        const button = $(this);
+
+        button.prop('disabled', true);
+
+        console.log(`Product ID: ${productId}, Quantity: ${quantity}`);
 
         $.ajax({
             url: 'cart-process.php',
@@ -122,17 +144,22 @@ $(document).ready(function() {
                 product_id: productId,
                 quantity: quantity
             },
-            success: function(response) {
-                const data = JSON.parse(response);
+            success: function(data) {
                 if(data.success) {
-                    alert('Product added to cart successfully!');
+                    console.log('Add to cart success:', data);
                     $('.badge').text(data.cart_count);
+                    quantityInput.val(1); 
+                    location.reload(); 
                 } else {
-                    alert('Error adding product to cart');
+                    console.error('Error adding product to cart');
                 }
             },
             error: function() {
-                alert('Error occurred while processing your request');
+                console.error('Error occurred while processing your request');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+                ajaxInProgress = false;
             }
         });
     });

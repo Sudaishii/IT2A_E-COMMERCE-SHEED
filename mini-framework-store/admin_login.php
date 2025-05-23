@@ -1,9 +1,9 @@
 <?php
 session_start();
 
-// Define admin credentials (Replace with secure method in production)
-$adminEmail = 'admin@yourstore.com'; // Replace with your desired admin email
-$adminPassword = 'admin123'; // Replace with a strong password
+
+$adminEmail = 'admin@yourstore.com'; 
+$adminPassword = 'admin123'; 
 
 $errorMessage = '';
 
@@ -11,11 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // Simple check against hardcoded credentials
     if ($email === $adminEmail && $password === $adminPassword) {
-        // Set admin session variable
+
         $_SESSION['is_admin_logged_in'] = true;
-        // Redirect to dashboard
+  
         header('Location: dashboard.php');
         exit;
     } else {

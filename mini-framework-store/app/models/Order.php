@@ -65,4 +65,17 @@ class Order extends Database
     // You might also want methods for:
     // - Creating a new order
     // - Updating order status, etc.
-} 
+
+    /**
+     * Get all orders in the system (for admin).
+     *
+     * @return array An array of all order records.
+     */
+    public function getAllOrders()
+    {
+        $sql = "SELECT * FROM orders ORDER BY created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+}

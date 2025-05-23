@@ -14,7 +14,8 @@ $categories = new Category();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Your one-stop shop for all your needs">
     <meta name="keywords" content="online store, shopping, e-commerce">
-    <title>Snezhy Store</title>
+    <title>Hanami Haven</title>
+    <link rel="icon" href="https://example.com/favicon.ico" type="image/x-icon" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +27,7 @@ $categories = new Category();
 <body class="store-body">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container">
-        <a class="navbar-brand" href="index.php">Snezhy Store</a>
+        <a class="navbar-brand" href="index.php">Hanami Haven</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,9 +36,11 @@ $categories = new Category();
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="index.php">Home</a>
                 </li>
+                <?php if (isLoggedIn()): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="add-product.php">Add Product</a>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Categories
@@ -48,6 +51,11 @@ $categories = new Category();
                     <?php endforeach; ?>
                 </ul>
                 </li>
+                <?php if (isset($_SESSION['user']) && $_SESSION['user']['is_admin'] == 1): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="order-history.php">Order History</a>
+                    </li>
+                <?php endif; ?>
             </ul>
             <a class="icon-link" href="cart.php">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" version="1.1" id="Capa_1" width="20px" height="20px" viewBox="0 0 902.86 902.86" xml:space="preserve">

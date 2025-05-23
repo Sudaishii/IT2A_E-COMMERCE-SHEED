@@ -2,7 +2,7 @@
 <?php template('header.php'); ?>
 
 <?php
-use Rasheed\MiniFrameworkStore\Models\Order; // Use the Order model
+use Rasheed\MiniFrameworkStore\Models\Order; 
 
 if (!isset($_GET['id'])) {
     header('Location: index.php');
@@ -11,8 +11,8 @@ if (!isset($_GET['id'])) {
 
 $orderId = $_GET['id'];
 
-$orderModel = new Order(); // Instantiate the Order model
-$order = $orderModel->getOrderById($orderId); // Use the getOrderById method from the model
+$orderModel = new Order(); 
+$order = $orderModel->getOrderById($orderId); 
 
 if (!$order) {
     header('Location: index.php');
@@ -22,8 +22,8 @@ if (!$order) {
 $amounLocale = 'en_PH';
 $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
 
-// If you need to display order items on this page, you would fetch them here
-// $orderDetails = $orderModel->getOrderDetailsByOrderId($orderId);
+
+$orderDetails = $orderModel->getOrderDetailsByOrderId($orderId)
 
 ?>
 
@@ -44,6 +44,16 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                         <p class="mb-1">Date: <?php echo date('F j, Y', strtotime($order['created_at'])); ?></p>
                         <p class="mb-1">Total: <?php echo $pesoFormatter->formatCurrency($order['total'], 'PHP'); ?></p>
                         <p class="mb-1">Payment Method: Cash on Delivery</p>
+                        <ul class="list-group text-start">
+                        <?php foreach ($orderDetails as $item): ?>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><?php echo htmlspecialchars($item['name']); ?></span>
+                                <span>Qty: <?php echo $item['quantity']; ?></span>
+                                <span>₱<?php echo number_format($item['subtotal'], 2); ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+
                     </div>
 
                     <div class="shipping-details mb-4">
@@ -51,7 +61,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                         <?php if ($order['customer_id']): ?>
                             <p class="mb-1">Name: <?php echo $_SESSION['user']['name']; ?></p>
                             <p class="mb-1">Phone: <?php echo $_SESSION['user']['phone']; ?></p>
-                            <p class="mb-1">Address: <?php echo $_SESSION['user']['address']; ?> <?php echo !empty($order['landmark_address']) ? ', ' . htmlspecialchars($order['landmark_address']) : ''; ?></p>
+                            <p class="mb-1">Address: <?php echo $_SESSION['user']['address']; ?></p>
                         <?php else: ?>
                             <p class="mb-1">Name: <?php echo $order['guest_name']; ?></p>
                             <p class="mb-1">Phone: <?php echo $order['guest_phone']; ?></p>

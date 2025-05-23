@@ -18,7 +18,7 @@ if(isset($_POST['submit'])) {
         $registeredUserId = $user->register([
             'name' => $name,
             'email' => $email,
-            'password' => password_hash($password, PASSWORD_BCRYPT), // Hashing the password
+            'password' => password_hash($password, PASSWORD_BCRYPT), 
             'address' => null,
             'phone' => null,
             'birthdate' => null,
@@ -31,26 +31,25 @@ if(isset($_POST['submit'])) {
         }
 
     } catch (PDOException $e) {
-        // Check for duplicate entry error (SQLSTATE 23000 and MySQL specific error 1062)
+      
         if ($e->getCode() === '23000' && strpos($e->getMessage(), '1062 Duplicate entry') !== false) {
-             if (strpos($e->getMessage(), "for key 'email'") !== false) { // Specifically check for email key
+             if (strpos($e->getMessage(), "for key 'email'") !== false) { 
                 $emailExistsError = 'This email address is already registered. Please use a different email or log in.';
             } else {
-                 // Handle other potential duplicate entry errors if necessary
+                 
                 $emailExistsError = 'A duplicate entry was found. Please check your information.';
             }
         } else {
-            // Handle other PDO exceptions (e.g., database connection issues)
-            // Log the actual error for debugging, but show a generic message to the user
+           
             error_log('Database error during registration: ' . $e->getMessage());
             $emailExistsError = 'An error occurred during registration. Please try again later.';
         }
     }
 }
 
-// Redirect logged-in users away from the registration page
+
 if(isset($_SESSION['user']) && !empty($_SESSION['user'])) {
-    header('Location: dashboard.php'); // Or index.php, depending on where logged-in users should go
+    header('Location: dashboard.php'); 
     exit;
 }
 

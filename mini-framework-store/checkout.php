@@ -4,19 +4,21 @@
 use Rasheed\MiniFrameworkStore\Models\Product;
 use Rasheed\MiniFrameworkStore\Models\Checkout;
 
-// Check if user is logged in, otherwise redirect to login page
+
 if (!isLoggedIn()) {
     header('Location: login.php');
     exit;
 }
 
-// Ensure cart is not empty for logged in users trying to checkout
+
 if (empty($_SESSION['cart'])) {
     header('Location: index.php');
     exit;
 }
 
-// The rest of the PHP logic for fetching cart items and processing checkout
+
+$selectedProductIds = $_POST['selected_products'] ?? array_keys($_SESSION['cart']);
+
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $products = new Product();
 $checkout = new Checkout();
@@ -26,42 +28,42 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
 $total = 0;
 $cartItems = [];
 
-foreach ($cart as $productId => $quantity) {
-    $product = $products->getById($productId);
-    if ($product) {
-        $subtotal = $product['price'] * $quantity;
-        $total += $subtotal;
-        $cartItems[] = [
-            'id' => $product['id'],
-            'name' => $product['name'],
-            'price' => $product['price'],
-            'quantity' => $quantity,
-            'subtotal' => $subtotal,
-            'image' => $product['image_path']
-        ];
+
+foreach ($selectedProductIds as $productId) {
+    if (isset($cart[$productId])) {
+        $quantity = $cart[$productId];
+        $product = $products->getById($productId);
+        if ($product) {
+            $subtotal = $product['price'] * $quantity;
+            $total += $subtotal;
+            $cartItems[] = [
+                'id' => $product['id'],
+                'name' => $product['name'],
+                'price' => $product['price'],
+                'quantity' => $quantity,
+                'subtotal' => $subtotal,
+                'image' => $product['image_path']
+            ];
+        }
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Process the order for logged-in users
+    
     $customerId = $_SESSION['user']['id'];
-    // Use the shipping address from the form, or potentially default from user profile
-    // Assuming you added an input field named 'landmark_address' in your form
-    $landmarkAddress = $_POST['landmark_address'] ?? null;
-    $shippingAddress = $_POST['shipping_address'] ?? $_SESSION['user']['address'] ?? null; // Still include main address if needed
+    $shippingAddress = $_POST['shipping_address'] ?? $_SESSION['user']['address'] ?? null;
 
-    // Create order data array
+    
     $orderData = [
         'customer_id' => $customerId,
-        'landmark_address' => $landmarkAddress, // Include landmark address
         'total' => $total
     ];
 
-    // Save order to database using the Checkout model (only userCheckout needed now)
+  
     $orderId = $checkout->userCheckout($orderData);
 
     if ($orderId) {
-        // Save order details using the Checkout model
+        
         foreach ($cartItems as $item) {
             $orderDetailData = [
                 'order_id' => $orderId,
@@ -73,10 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $checkout->saveOrderDetails($orderDetailData);
         }
 
-        // Clear cart
-        unset($_SESSION['cart']);
+        
+        foreach ($selectedProductIds as $productId) {
+            unset($_SESSION['cart'][$productId]);
+        }
 
-        // Redirect to success page
+        
         header('Location: order-success.php?id=' . $orderId);
         exit;
     }
@@ -96,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php else: ?>
         <div class="row">
-            <!-- Checkout Form -->
+            
             <div class="col-md-8">
                 <div class="card mb-4">
                     <div class="card-header bg-olive text-white">
@@ -104,14 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="card-body">
                         <form method="POST" action="checkout.php">
+                            <input type="hidden" name="selected_products" value="<?php echo implode(',', $selectedProductIds); ?>">
                             <div class="mb-3">
                                 <label for="shipping_address" class="form-label">Shipping Address</label>
                                 <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required><?php echo $_SESSION['user']['address']; ?></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="landmark_address" class="form-label">Landmark (Optional)</label>
-                                <input type="text" class="form-control" id="landmark_address" name="landmark_address">
                             </div>
 
                             <div class="mb-3">
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Order Summary -->
+          
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header bg-olive text-white">

@@ -6,6 +6,9 @@
         button.addEventListener('click', function (e) {
             e.preventDefault();
 
+            // Disable the button to prevent double clicking
+            this.disabled = true;
+
             const productId = this.getAttribute('data-productid');
             const quantity = this.getAttribute('data-quantity') || 1;
 
@@ -28,10 +31,14 @@
                 } else {
                     alert('Failed to add product to cart.');
                 }
+                // Re-enable the button after response
+                this.disabled = false;
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again.');
+                // Re-enable the button after error
+                this.disabled = false;
             });
         });
     });
