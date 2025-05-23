@@ -36,7 +36,7 @@ $productsList = $selectedCategory ? $products->getByCategory($selectedCategory) 
         <div class="row align-items-center">
             <div class="col-md-8 mx-auto text-center">
                 <h1 class="hero-title fade-in">Welcome to Snezhy Online Store</h1>
-                <p class="hero-subtitle fade-in">Discover amazing products in our sakura-themed paradise!</p>
+                <p class="hero-subtitle fade-in">Discover our premium Sakura Skincare, Cherry Blossom Makeup, and enchanting Fragrances!</p>
                 <div class="mt-4 fade-in">
                     <a href="#products" class="btn btn-light btn-lg px-5 py-3 shadow-hover">
                         <i class="bi bi-arrow-down-circle me-2"></i>Explore Products
@@ -126,11 +126,18 @@ $productsList = $selectedCategory ? $products->getByCategory($selectedCategory) 
                                            class="btn btn-primary">
                                             <i class="bi bi-eye me-2"></i>View Details
                                         </a>
-                                        <button class="btn btn-success add-to-cart" 
-                                                data-productid="<?php echo $product['id'] ?>" 
-                                                data-quantity="1">
-                                            <i class="bi bi-cart-plus me-2"></i>Add to Cart
-                                        </button>
+                                        <?php if (isLoggedIn()): ?>
+                                            <button type="button" 
+                                                    class="btn btn-success add-to-cart" 
+                                                    data-productid="<?php echo $product['id'] ?>" 
+                                                    data-quantity="1">
+                                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                            </button>
+                                        <?php else: ?>
+                                            <a href="login.php" class="btn btn-success">
+                                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

@@ -67,10 +67,17 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                             </div>
                         </div>
                         <div class="col-md-8">
-                            <button type="button" class="btn btn-success w-100 add-to-cart" 
-                                    data-productid="<?php echo $productDetails['id']; ?>">
-                                <i class="bi bi-cart-plus"></i> Add to Cart
-                            </button>
+                            <?php if (isLoggedIn()): ?>
+                                <button type="button" 
+                                        class="btn btn-success w-100 add-to-cart" 
+                                        data-productid="<?php echo $productDetails['id']; ?>">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </button>
+                            <?php else: ?>
+                                <a href="login.php" class="btn btn-success w-100">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </form>

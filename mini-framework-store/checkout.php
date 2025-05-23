@@ -3,14 +3,23 @@
 <?php
 
 use Rasheed\MiniFrameworkStore\Models\Product;
+use Rasheed\MiniFrameworkStore\Models\Checkout;
 
-if (!isLoggedIn() && empty($_SESSION['cart'])) {
+// Check if user is logged in, otherwise redirect to login page
+if (!isLoggedIn()) {
+    header('Location: login.php');
+    exit;
+}
+
+// Ensure cart is not empty for logged in users trying to checkout
+if (empty($_SESSION['cart'])) {
     header('Location: index.php');
     exit;
 }
 
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $products = new Product();
+$checkout = new Checkout();
 $amounLocale = 'en_PH';
 $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
 
@@ -34,37 +43,36 @@ foreach ($cart as $productId => $quantity) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Process the order
-    $customerId = isLoggedIn() ? $_SESSION['user']['id'] : null;
-    $guestName = !isLoggedIn() ? $_POST['name'] : null;
-    $guestPhone = !isLoggedIn() ? $_POST['phone'] : null;
-    $guestAddress = !isLoggedIn() ? $_POST['address'] : null;
-    $shippingAddress = isLoggedIn() ? $_POST['shipping_address'] : $guestAddress;
+    // Process the order for logged-in users
+    $customerId = $_SESSION['user']['id'];
+    // Use the shipping address from the form, or potentially default from user profile
+    $shippingAddress = $_POST['shipping_address'] ?? $_SESSION['user']['address'] ?? null;
 
-    // Create order
-    $order = [
+    // Create order data array
+    $orderData = [
         'customer_id' => $customerId,
-        'guest_name' => $guestName,
-        'guest_phone' => $guestPhone,
-        'guest_address' => $guestAddress,
-        'total' => $total,
-        'created_at' => date('Y-m-d H:i:s')
+        'guest_name' => null, // No guest name for logged-in users
+        'guest_phone' => null, // No guest phone for logged-in users
+        'guest_address' => null, // No guest address for logged-in users
+        'total' => $total
+        // Note: Address is part of the user's profile, not stored directly in the order for logged-in users in this model structure.
+        // If you need to store the specific shipping address for this order, the 'orders' table or 'order_details' table structure needs adjustment.
     ];
 
-    // Save order to database
-    $orderId = saveOrder($order);
+    // Save order to database using the Checkout model (only userCheckout needed now)
+    $orderId = $checkout->userCheckout($orderData);
 
     if ($orderId) {
-        // Save order details
+        // Save order details using the Checkout model
         foreach ($cartItems as $item) {
-            $orderDetail = [
+            $orderDetailData = [
                 'order_id' => $orderId,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
                 'subtotal' => $item['subtotal']
             ];
-            saveOrderDetail($orderDetail);
+            $checkout->saveOrderDetails($orderDetailData);
         }
 
         // Clear cart
@@ -95,25 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="card-body">
                         <form method="POST" action="checkout.php">
-                            <?php if (!isLoggedIn()): ?>
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">Address</label>
-                                    <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
-                                </div>
-                            <?php else: ?>
-                                <div class="mb-3">
-                                    <label for="shipping_address" class="form-label">Shipping Address</label>
-                                    <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required><?php echo $_SESSION['user']['address']; ?></textarea>
-                                </div>
-                            <?php endif; ?>
+                            <div class="mb-3">
+                                <label for="shipping_address" class="form-label">Shipping Address</label>
+                                <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required><?php echo $_SESSION['user']['address']; ?></textarea>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label">Payment Method</label>

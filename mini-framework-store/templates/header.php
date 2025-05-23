@@ -1,5 +1,4 @@
 <?php
-
 require 'vendor/autoload.php';
 
 use Rasheed\MiniFrameworkStore\Models\Category;
@@ -22,6 +21,7 @@ $categories = new Category();
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body class="store-body">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -58,7 +58,12 @@ $categories = new Category();
                         </g>
                     </g>
                 </svg>
-                <span class="badge bg-success"><?php echo countCart(); ?></span>
+                <span id="cart-count-badge" class="badge bg-success">
+                    <?php 
+                    $cartCount = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+                    echo $cartCount;
+                    ?>
+                </span>
             </a>
             <ul class="navbar-nav mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
