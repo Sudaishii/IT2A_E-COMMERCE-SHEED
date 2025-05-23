@@ -2,13 +2,17 @@
 <?php template('header.php'); ?>
 
 <?php
+use Rasheed\MiniFrameworkStore\Models\Order; // Use the Order model
+
 if (!isset($_GET['id'])) {
     header('Location: index.php');
     exit;
 }
 
 $orderId = $_GET['id'];
-$order = getOrderById($orderId);
+
+$orderModel = new Order(); // Instantiate the Order model
+$order = $orderModel->getOrderById($orderId); // Use the getOrderById method from the model
 
 if (!$order) {
     header('Location: index.php');
@@ -17,6 +21,10 @@ if (!$order) {
 
 $amounLocale = 'en_PH';
 $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
+
+// If you need to display order items on this page, you would fetch them here
+// $orderDetails = $orderModel->getOrderDetailsByOrderId($orderId);
+
 ?>
 
 <div class="container my-5">
@@ -43,7 +51,7 @@ $pesoFormatter = new NumberFormatter($amounLocale, NumberFormatter::CURRENCY);
                         <?php if ($order['customer_id']): ?>
                             <p class="mb-1">Name: <?php echo $_SESSION['user']['name']; ?></p>
                             <p class="mb-1">Phone: <?php echo $_SESSION['user']['phone']; ?></p>
-                            <p class="mb-1">Address: <?php echo $_SESSION['user']['address']; ?></p>
+                            <p class="mb-1">Address: <?php echo $_SESSION['user']['address']; ?> <?php echo !empty($order['landmark_address']) ? ', ' . htmlspecialchars($order['landmark_address']) : ''; ?></p>
                         <?php else: ?>
                             <p class="mb-1">Name: <?php echo $order['guest_name']; ?></p>
                             <p class="mb-1">Phone: <?php echo $order['guest_phone']; ?></p>

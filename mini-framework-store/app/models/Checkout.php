@@ -35,13 +35,11 @@ class Checkout extends Database
 
     public function userCheckout($data)
     {
-        $sql = "INSERT INTO orders (customer_id, guest_name, guest_phone, guest_address, total, created_at, updated_at) VALUES (:customer_id, :guest_name, :guest_phone, :guest_address, :total, :created_at, :updated_at)";
+        $sql = "INSERT INTO orders (customer_id, landmark_address, total, created_at, updated_at) VALUES (:customer_id, :landmark_address, :total, :created_at, :updated_at)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'customer_id' => $data['customer_id'],
-            'guest_name' => null,
-            'guest_phone' => null,
-            'guest_address' => null,
+            'landmark_address' => $data['landmark_address'] ?? null,
             'total' => $data['total'],
             'created_at' => Carbon::now('Asia/Manila'),
             'updated_at' => Carbon::now('Asia/Manila')
@@ -65,11 +63,20 @@ class Checkout extends Database
 
     public function getAllOrders()
     {
-        $sql = "SELECT o.id, u.name AS user_name, p.name AS product_name, od.quantity, od.price AS total_price, o.created_at AS order_date
-                FROM orders o
-                LEFT JOIN users u ON o.customer_id = u.id
-                LEFT JOIN order_details od ON o.id = od.order_id
-                LEFT JOIN products p ON od.product_id = p.id";
+        // Modified query to select distinct orders, include user or guest name, and order by created_at DESC
+        $sql = "SELECT
+                    o.id,
+                    o.customer_id,
+                    u.name AS user_name,
+                    o.guest_name,
+                    o.total,
+                    o.created_at
+                FROM
+                    orders o
+                LEFT JOIN
+                    users u ON o.customer_id = u.id
+                ORDER BY
+                    o.created_at DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

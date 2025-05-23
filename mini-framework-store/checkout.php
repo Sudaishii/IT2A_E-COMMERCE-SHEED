@@ -1,5 +1,4 @@
 <?php include 'helpers/functions.php'; ?>
-<?php template('header.php'); ?>
 <?php
 
 use Rasheed\MiniFrameworkStore\Models\Product;
@@ -17,6 +16,7 @@ if (empty($_SESSION['cart'])) {
     exit;
 }
 
+// The rest of the PHP logic for fetching cart items and processing checkout
 $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $products = new Product();
 $checkout = new Checkout();
@@ -46,17 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Process the order for logged-in users
     $customerId = $_SESSION['user']['id'];
     // Use the shipping address from the form, or potentially default from user profile
-    $shippingAddress = $_POST['shipping_address'] ?? $_SESSION['user']['address'] ?? null;
+    // Assuming you added an input field named 'landmark_address' in your form
+    $landmarkAddress = $_POST['landmark_address'] ?? null;
+    $shippingAddress = $_POST['shipping_address'] ?? $_SESSION['user']['address'] ?? null; // Still include main address if needed
 
     // Create order data array
     $orderData = [
         'customer_id' => $customerId,
-        'guest_name' => null, // No guest name for logged-in users
-        'guest_phone' => null, // No guest phone for logged-in users
-        'guest_address' => null, // No guest address for logged-in users
+        'landmark_address' => $landmarkAddress, // Include landmark address
         'total' => $total
-        // Note: Address is part of the user's profile, not stored directly in the order for logged-in users in this model structure.
-        // If you need to store the specific shipping address for this order, the 'orders' table or 'order_details' table structure needs adjustment.
     ];
 
     // Save order to database using the Checkout model (only userCheckout needed now)
@@ -83,7 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
 ?>
+
+<?php template('header.php'); ?>
 
 <div class="container my-5">
     <h1 class="mb-4">Checkout</h1>
@@ -106,6 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mb-3">
                                 <label for="shipping_address" class="form-label">Shipping Address</label>
                                 <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required><?php echo $_SESSION['user']['address']; ?></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="landmark_address" class="form-label">Landmark (Optional)</label>
+                                <input type="text" class="form-control" id="landmark_address" name="landmark_address">
                             </div>
 
                             <div class="mb-3">

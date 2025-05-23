@@ -135,16 +135,20 @@ if(isset($_POST['submit'])) {
                                 <?php foreach ($orders as $order): ?>
                                     <div class="card mb-3">
                                         <div class="card-header d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>Order #<?php echo str_pad($order['id'], 8, '0', STR_PAD_LEFT); ?></strong>
-                                                <br>
-                                                <small class="text-muted">
-                                                    <?php echo date('F j, Y', strtotime($order['created_at'])); ?>
-                                                </small>
-                                            </div>
-                                            <span class="badge bg-success">
-                                                <?php echo $pesoFormatter->formatCurrency($order['total'], 'PHP'); ?>
-                                            </span>
+                                            <a href="order-success.php?id=<?php echo $order['id']; ?>" style="text-decoration: none; color: inherit; width: 100%;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>Order #<?php echo str_pad($order['id'], 8, '0', STR_PAD_LEFT); ?></strong>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            <?php echo date('F j, Y', strtotime($order['created_at'])); ?>
+                                                        </small>
+                                                    </div>
+                                                    <span class="badge bg-success">
+                                                        <?php echo $pesoFormatter->formatCurrency($order['total'], 'PHP'); ?>
+                                                    </span>
+                                                </div>
+                                            </a>
                                         </div>
                                         <div class="card-body">
                                             <?php

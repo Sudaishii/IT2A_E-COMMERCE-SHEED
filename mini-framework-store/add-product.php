@@ -1,4 +1,4 @@
-s<?php include 'helpers/functions.php'; ?>
+<?php include 'helpers/functions.php'; ?>
 <?php template('header.php'); ?>
 <?php
 

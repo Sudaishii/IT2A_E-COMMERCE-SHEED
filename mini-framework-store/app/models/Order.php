@@ -46,8 +46,23 @@ class Order extends Database
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Get a single order by its ID.
+     *
+     * @param int $orderId The ID of the order.
+     * @return array|false An associative array of the order record, or false if not found.
+     */
+    public function getOrderById($orderId)
+    {
+        $sql = "SELECT * FROM orders WHERE id = :order_id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'order_id' => $orderId
+        ]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
     // You might also want methods for:
     // - Creating a new order
-    // - Getting a single order by ID
     // - Updating order status, etc.
 } 
